@@ -1,0 +1,47 @@
+--SELECT * FROM company WHERE status = 'ATIVO' ;
+
+-- SELECT supplier.name as supplier, company.name as company
+--     FROM supplier, company
+--     WHERE supplier.company_id = company.id;
+
+-- SELECT * FROM (SELECT supplier.name as supplier, company.name as company FROM supplier
+--     LEFT JOIN company
+--         ON supplier.company_id = company.id) as SupplierCompany;
+--
+-- SELECT * FROM company as cp INNER JOIN supplier as sp
+--     ON cp.id = sp.company_id
+--         WHERE cp.status = 'ATIVO' AND sp.status = 'ATIVO'
+--         LIMIT 3
+--         OFFSET 6;
+--
+-- SELECT cp.name as empresa,
+--        (SELECT count(*) FROM supplier as sp
+--             WHERE sp.company_id = cp.id)
+--     FROM company as cp;
+--
+
+SELECT
+    cp.name,
+    COUNT(sp.id) AS total_fornecedores,
+    COUNT(DISTINCT tp.id) AS total_tipos_produtos
+FROM company cp
+LEFT JOIN supplier sp ON sp.company_id = cp.id
+INNER JOIN type_product tp ON tp.company_id = cp.id
+GROUP BY cp.id
+ORDER BY total_fornecedores ;
+--
+-- INSERT INTO type_product (name, cod, company_id)
+--     VALUES ('Bota', 2, 2)
+
+-- SELECT * FROM type_product
+
+SELECT
+    cp.*,
+    COUNT(DISTINCT sp.id) AS total_fornecedores,
+    COUNT(DISTINCT tp.id) AS total_tipos_produtos
+FROM company cp
+LEFT JOIN supplier sp ON sp.company_id = cp.id
+INNER JOIN type_product tp ON tp.company_id = cp.id
+GROUP BY cp.id
+ORDER BY total_fornecedores ;
+
