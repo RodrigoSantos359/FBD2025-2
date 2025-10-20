@@ -47,7 +47,7 @@ CREATE DATABASE sistema_estoque_aula;
 
 3. As configurações padrão do banco estão definidas em `core/settings.py`:
    - **Host:** localhost
-   - **Porta:** 5432
+   - **Porta:** 5433
    - **Usuário:** postgres
    - **Senha:** postgres
    - **Database:** sistema_estoque_aula
@@ -89,7 +89,7 @@ pip install fastapi==0.118.0 uvicorn==0.37.0 psycopg2==2.9.10 pydantic==2.11.9 p
 uvicorn main:app --reload
 ```
 
-A aplicação estará disponível em: `http://localhost:8000`
+A aplicação estará disponível em: `http://localhost:8080`
 
 ### Opções adicionais de execução:
 
@@ -126,8 +126,8 @@ uvicorn main:app --reload --log-level debug
 
 O FastAPI gera automaticamente documentação interativa da API:
 
-- **Swagger UI:** `http://localhost:8000/docs`
-- **ReDoc:** `http://localhost:8000/redoc`
+- **Swagger UI:** `http://localhost:8080/docs`
+- **ReDoc:** `http://localhost:8080/redoc`
 
 ## Testando a API
 
@@ -135,13 +135,13 @@ O FastAPI gera automaticamente documentação interativa da API:
 
 ```bash
 # Listar empresas
-curl http://localhost:8000/company/
+curl http://localhost:8080/company/
 
 # Buscar empresa por ID
-curl http://localhost:8000/company/1/
+curl http://localhost:8080/company/1/
 
 # Criar nova empresa
-curl -X POST http://localhost:8000/company/ \
+curl -X POST http://localhost:8080/company/ \
   -H "Content-Type: application/json" \
   -d '{"name": "Minha Empresa", "cnpj": "12345678000190"}'
 ```
