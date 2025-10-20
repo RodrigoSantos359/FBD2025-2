@@ -1,30 +1,26 @@
-from core.db import DataBase
+from sqlalchemy.orm import Session
 from modules.company.schemas import CompanyCreate
-
+from core.db import SessionLocal
+from sqlalchemy import text
 
 class CompanyRepository:
-    QUERY_COMPANIES = "SELECT id, name FROM company"
-    QUERY_COMPANY_ID = "SELECT id, name FROM company where id = %s"
-    QUERY_CREATE_COMPANY = 'INSERT INTO company (name) VALUES (%s) RETURNING id;'
-
     def get_all(self):
-        db = DataBase()
-        companies = db.execute(self.QUERY_COMPANIES)
-        results = []
-        for company in companies:
-            results.append({"id": company[0], "name": company[1]})
-        return results
+        with SessionLocal() as session:
+            query = text("SELECT id, nome FROM company")
+            result = session.execute(query).fetchall()
+            return [{"id": row[0], "name": row[1]} for row in result]
 
     def save(self, company: CompanyCreate):
-        db = DataBase()
-        query = self.QUERY_CREATE_COMPANY % f"'{company.name}'"
-        result = db.commit(query)
-        return {"id": result[0], "name": company.name}
+        with SessionLocal() as session:
+            query = text("INSERT INTO company (nome, cnpj) VALUES (:name, :cnpj) RETURNING id")
+            result = session.execute(query, {"name": company.name, "cnpj": company.cnpj}).fetchone()
+            session.commit()
+            return {"id": result[0], "name": company.name, "cnpj": company.cnpj}
 
     def get_id(self, id: int):
-        db = DataBase()
-        query = self.QUERY_COMPANY_ID % id
-        company = db.execute(query, many=False)
-        if company:
-            return {"id": company[0], "name": company[1]}
-        return {}
+        with SessionLocal() as session:
+            query = text("SELECT id, nome, cnpj FROM company WHERE id = :id")
+            result = session.execute(query, {"id": id}).fetchone()
+            if result:
+                return {"id": result[0], "name": result[1], "cnpj": result[2]}
+            return {}

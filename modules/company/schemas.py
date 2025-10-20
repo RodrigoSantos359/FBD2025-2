@@ -5,4 +5,5 @@ class Company(BaseModel):
     name: str
 
 class CompanyCreate(BaseModel):
+    cnpj: str
     name: str

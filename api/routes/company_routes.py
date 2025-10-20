@@ -24,7 +24,8 @@ def get_company_by_id(id: int):
     return service.get_company_id(id)
 
 
-@router.post("/", response_model=schemas.Company)
-def add_company(company: CompanyCreate):
+@router.post("/", response_model=dict)
+def create_company(company: CompanyCreate):
+    print("Dados recebidos:", company.dict())  # Log para depuração
     service = CompanyService()
     return service.create_company(company)

@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: sistema_estoque_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sistema_estoque_aula
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data_postgres:/var/lib/postgresql/data
+    restart: always
