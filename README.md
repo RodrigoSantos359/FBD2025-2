@@ -16,16 +16,30 @@ API REST desenvolvida com FastAPI para gerenciamento de empresas (sistema de est
 ```
 fastApiProject/
 ├── api/
-│   └── routes/
-│       └── company_routes.py    # Rotas da API de empresas
+│   ├── routes/
+│   |    ├── company_routes.py    # Rotas da API de empresas
+|   |    ├── fornecedor_routes.py
+|   |    └── tipo_routes.py
+|   └── main.py
 ├── core/
 │   ├── db.py                    # Configuração do banco de dados
 │   └── settings.py              # Configurações do projeto
+├── data_postgres/                # pasta data do banco para guarda os volumes 
 ├── modules/
-│   └── company/
+│   ├── company/
+│   |   ├── repository.py        # Camada de acesso a dados
+│   |   ├── schemas.py           # Schemas Pydantic
+│   |   └── service.py           # Lógica de negócio
+|   ├── fornecedor/
+│   |   ├── repository.py        # Camada de acesso a dados
+│   |   ├── schemas.py           # Schemas Pydantic
+│   |   └── service.py           # Lógica de negócio
+|   └── tipo/
 │       ├── repository.py        # Camada de acesso a dados
 │       ├── schemas.py           # Schemas Pydantic
 │       └── service.py           # Lógica de negócio
+├── create_tables.py             # Crie todas as tabelas no banco de dados
+├── docker_compose.yml           # Configuração para rodar o Postgres no Docker
 ├── main.py                      # Arquivo principal da aplicação
 └── venv/                        # Ambiente virtual Python
 ```
