@@ -103,7 +103,7 @@ pip install fastapi==0.118.0 uvicorn==0.37.0 psycopg2==2.9.10 pydantic==2.11.9 p
 uvicorn main:app --reload
 ```
 
-A aplicação estará disponível em: `http://localhost:8080`
+A aplicação estará disponível em: `http://localhost:8000`
 
 ### Opções adicionais de execução:
 
@@ -136,6 +136,28 @@ uvicorn main:app --reload --log-level debug
   - Body: Objeto CompanyCreate (JSON)
   - Retorna: Objeto Company criado
 
+**GET `/tipo/`** - Lista todas as empresas
+  - Retorna: Array de objetos Company
+
+- **GET `/tipo/{id}/`** - Busca empresa por ID
+  - Parâmetro: `id` (inteiro)
+  - Retorna: Objeto Company ou null
+
+- **POST `/tipo/`** - Cria nova empresa
+  - Body: Objeto CompanyCreate (JSON)
+  - Retorna: Objeto Company criado
+
+**GET `/fornecedor/`** - Lista todas as empresas
+  - Retorna: Array de objetos Company
+
+- **GET `/fornecedor/{id}/`** - Busca empresa por ID
+  - Parâmetro: `id` (inteiro)
+  - Retorna: Objeto Company ou null
+
+- **POST `/fornecedor/`** - Cria nova empresa
+  - Body: Objeto CompanyCreate (JSON)
+  - Retorna: Objeto Company criado
+    
 ## Documentação Interativa
 
 O FastAPI gera automaticamente documentação interativa da API:
@@ -149,13 +171,13 @@ O FastAPI gera automaticamente documentação interativa da API:
 
 ```bash
 # Listar empresas
-curl http://localhost:8080/company/
+curl http://localhost:8000/company/
 
 # Buscar empresa por ID
-curl http://localhost:8080/company/1/
+curl http://localhost:8000/company/1/
 
 # Criar nova empresa
-curl -X POST http://localhost:8080/company/ \
+curl -X POST http://localhost:8000/company/ \
   -H "Content-Type: application/json" \
   -d '{"name": "Minha Empresa", "cnpj": "12345678000190"}'
 ```
