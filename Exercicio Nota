@@ -1,0 +1,71 @@
+Tarefa.
+
+
+Os modelos abaixo já foram implementados anteriormente
+
+EMPRESA(id, nome, cnpj, status)
+TIPO(id, nome, cod_tipo, empresa_id)
+FORNECEDOR(id, nome, cnpj, status, empresa_id)
+
+
+Os endpoints já criados permitem:
+ - Inserir um novo registro (POST)
+ - Listar todos os registros (GET /entidade)
+ - Buscar um registro por ID (GET /entidade/{id})
+
+
+
+2. Novos Modelos a Criar
+ - Crie dois novos modelos relacionados com os anteriores:
+
+PRODUTO(
+    id,
+    nome,
+    descricao,
+    preco,
+    tipo_id,         # FK para TIPO
+    fornecedor_id,   # FK para FORNECEDOR
+    empresa_id       # FK para EMPRESA
+)
+
+ESTOQUE(
+    id,
+    produto_id,      # FK para PRODUTO
+    quantidade,
+    data_atualizacao
+)
+
+3. Endpoints a Implementar
+
+
+_mplemente os seguintes endpoints RESTful:
+
+ - Para TIPO e FORNECEDOR (caso ainda não existam):
+
+       - GET /tipo → Lista todos os tipos
+       - GET /tipo/{id} → Retorna um tipo específico
+       - POST /tipo → Insere um novo tipo
+       - GET /fornecedor → Lista todos os fornecedores
+       - GET /fornecedor/{id} → Retorna um fornecedor específico
+       - POST /fornecedor → Insere um novo fornecedor
+
+ - Para PRODUTO:
+
+       - GET /produto → Lista todos os produtos
+       - GET /produto/{id} → Retorna um produto específico
+       - POST /produto → Insere um novo produto
+       - GET /empresa/{id}/produtos → lista todos os produtos de uma empresa específica.
+    DICA: Ao listar produtos, inclua o nome do tipo e do fornecedor (usando JOIN ou ORM).
+
+
+Para ESTOQUE:
+
+       - GET /estoque → Lista todos os estoques
+       - GET /estoque/{id} → Retorna um estoque específico
+       - POST /estoque → Insere um novo registro de estoque
+
+
+DICA: O endpoint de estoque pode mostrar também o nome do produto e sua quantidade atual.
+
+
+
