@@ -1,9 +1,17 @@
 from pydantic import BaseModel
+from typing import Literal
 
-class Company(BaseModel):
-    id: int
-    name: str
-
-class CompanyCreate(BaseModel):
+StatusEnum = Literal['ATIVO', 'INATIVO', 'SUSPENSO']
+class CompanyBase(BaseModel):
+    nome: str
     cnpj: str
-    name: str
+    status: StatusEnum
+
+class CompanyCreate(CompanyBase):
+    pass
+
+class Company(CompanyBase):
+    id: int
+
+    class Config:
+        orm_mode = True

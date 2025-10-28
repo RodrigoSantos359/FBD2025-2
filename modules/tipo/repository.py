@@ -1,55 +1,45 @@
-from http.client import HTTPException
-from core.db import SessionLocal
-from modules.company.models import Empresa
+from sqlalchemy.orm import Session
 from modules.tipo.schemas import TipoCreate
-from modules.tipo.models import Tipo  # se tiver model SQLAlchemy
-from modules.tipo.schemas import TipoBase
-from sqlalchemy.exc import IntegrityError
+from modules.tipo.models import Tipo
+from core.db import SessionLocal
+from sqlalchemy import text
 
 class TipoRepository:
-    def __init__(self):
-        self.db = SessionLocal()
-
     def get_all(self):
-        return self.db.query(Tipo).all()
+        with SessionLocal() as session:
+            query = text("SELECT id, nome, cod_tipo, empresa_id FROM tipo")
+            result = session.execute(query).fetchall()
+            return [{"id": row[0], "nome": row[1], "cod_tipo": row[2], "empresa_id": row[3]} for row in result]
 
-    def get_by_id(self, id: int):
-        return self.db.query(Tipo).filter(Tipo.id == id).first()
+    def save(self, tipo: TipoCreate):
+        with SessionLocal() as session:
+            query = text("INSERT INTO tipo (nome, cod_tipo, empresa_id) VALUES (:nome, :cod_tipo, :empresa_id) RETURNING id")
+            result = session.execute(query, {"nome": tipo.nome, "cod_tipo": tipo.cod_tipo, "empresa_id": tipo.empresa_id}).fetchone()
+            session.commit()
+            return {"id": result[0], "nome": tipo.nome, "cod_tipo": tipo.cod_tipo, "empresa_id": tipo.empresa_id}
 
-    def create(self, tipo: TipoCreate):
-        db_tipo = Tipo(**tipo.dict())
-        self.db.add(db_tipo)
-        self.db.commit()
-        self.db.refresh(db_tipo)
-        return db_tipo
-    
-    def close(self):
-        self.db.close() 
+    def get_id(self, id: int):
+        with SessionLocal() as session:
+            query = text("SELECT id, nome, cod_tipo, empresa_id FROM tipo WHERE id = :id")
+            result = session.execute(query, {"id": id}).fetchone()
+            if result:
+                return {"id": result[0], "nome": result[1], "cod_tipo": result[2], "empresa_id": result[3]}
+            return None
 
-    def create_with_id(self, tipo: TipoBase):
-        """
-        Create a new Tipo entry with the provided ID.
-        """
-        try:
-            # Check if a record with the same cod_tipo and empresa_id already exists
-            existing_tipo = self.db.query(Tipo).filter_by(
-                cod_tipo=tipo.cod_tipo, empresa_id=tipo.empresa_id
-            ).first()
+    def update(self, id: int, tipo: TipoCreate):
+        with SessionLocal() as session:
+            query = text("UPDATE tipo SET nome = :nome, cod_tipo = :cod_tipo, empresa_id = :empresa_id WHERE id = :id RETURNING id")
+            result = session.execute(query, {"id": id, "nome": tipo.nome, "cod_tipo": tipo.cod_tipo, "empresa_id": tipo.empresa_id}).fetchone()
+            session.commit()
+            if result:
+                return {"id": result[0], "nome": tipo.nome, "cod_tipo": tipo.cod_tipo, "empresa_id": tipo.empresa_id}
+            return None
 
-            if existing_tipo:
-                raise ValueError(
-                    f"A Tipo with cod_tipo '{tipo.cod_tipo}' and empresa_id '{tipo.empresa_id}' already exists."
-                )
-
-            # Add the new Tipo to the session
-            self.db.add(tipo)
-            self.db.commit()
-            return tipo
-
-        except IntegrityError as e:
-            self.db.rollback()
-            raise ValueError("Failed to create Tipo due to a database integrity error.") from e
-
-        except ValueError as e:
-            self.db.rollback()
-            raise e
+    def delete(self, id: int):
+        with SessionLocal() as session:
+            query = text("DELETE FROM tipo WHERE id = :id RETURNING id")
+            result = session.execute(query, {"id": id}).fetchone()
+            session.commit()
+            if result:
+                return {"message": f"Tipo com id {id} deletado com sucesso."}
+            return {"message": f"Tipo com id {id} não encontrado."}

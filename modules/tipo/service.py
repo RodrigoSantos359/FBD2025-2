@@ -1,30 +1,24 @@
+from typing import Optional
+from modules.tipo import schemas
 from modules.tipo.repository import TipoRepository
-from modules.tipo.schemas import TipoCreate
-from modules.tipo.schemas import TipoBase
-from modules.company.models import Empresa
-from fastapi import HTTPException
 
 class TipoService:
-    def __init__(self):
-        self.repo = TipoRepository()
+    def get_tipos(self):
+        repository = TipoRepository()
+        return repository.get_all()
 
-    def listar_tipos(self):
-        return self.repo.get_all()
+    def create_tipo(self, tipo: schemas.TipoCreate) -> schemas.Tipo:
+        repository = TipoRepository()
+        return repository.save(tipo)
 
-    def buscar_tipo_por_id(self, id: int):
-        return self.repo.get_by_id(id)
-    
-    def criar_tipo_com_id(self, tipo: TipoBase):
-        try:
-            return self.repo.create_with_id(tipo)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+    def get_tipo_id(self, id: int):
+        repository = TipoRepository()
+        return repository.get_id(id)
 
-    def criar_tipo(self, tipo: TipoCreate):
-        # Validate empresa_id
-        # with self.repo.db as session:
-        #     empresa_exists = session.query(Empresa).filter(Empresa.id == tipo.empresa_id).first()
-        #     if not empresa_exists:
-        #         raise HTTPException(status_code=400, detail=f"Empresa with id {tipo.empresa_id} does not exist.")
+    def update_tipo(self, id: int, tipo: schemas.TipoCreate) -> Optional[schemas.Tipo]:
+        repository = TipoRepository()
+        return repository.update(id, tipo)
 
-        return self.repo.create(tipo)
+    def delete_tipo(self, id: int):
+        repository = TipoRepository()
+        return repository.delete(id)

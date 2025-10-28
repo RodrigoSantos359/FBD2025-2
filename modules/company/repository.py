@@ -1,26 +1,42 @@
-from sqlalchemy.orm import Session
+from core.db import get_db
 from modules.company.schemas import CompanyCreate
-from core.db import SessionLocal
-from sqlalchemy import text
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 
 class CompanyRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
     def get_all(self):
-        with SessionLocal() as session:
-            query = text("SELECT id, nome FROM company")
-            result = session.execute(query).fetchall()
-            return [{"id": row[0], "name": row[1]} for row in result]
+        query = text("SELECT id, nome, cnpj, status FROM empresa")
+        results = self.db.execute(query).fetchall()
+        return [{"id": row[0], "nome": row[1], "cnpj": row[2], "status": row[3]} for row in results]
 
     def save(self, company: CompanyCreate):
-        with SessionLocal() as session:
-            query = text("INSERT INTO company (nome, cnpj) VALUES (:name, :cnpj) RETURNING id")
-            result = session.execute(query, {"name": company.name, "cnpj": company.cnpj}).fetchone()
-            session.commit()
-            return {"id": result[0], "name": company.name, "cnpj": company.cnpj}
+        query = text("INSERT INTO empresa (nome, cnpj, status) VALUES (:nome, :cnpj, :status) RETURNING id")
+        result = self.db.execute(query, {"nome": company.nome, "cnpj": company.cnpj, "status": company.status}).fetchone()
+        self.db.commit()
+        return {"id": result[0], "nome": company.nome, "cnpj": company.cnpj, "status": company.status}
 
     def get_id(self, id: int):
-        with SessionLocal() as session:
-            query = text("SELECT id, nome, cnpj FROM company WHERE id = :id")
-            result = session.execute(query, {"id": id}).fetchone()
-            if result:
-                return {"id": result[0], "name": result[1], "cnpj": result[2]}
-            return {}
+        query = text("SELECT id, nome, cnpj, status FROM empresa WHERE id = :id")
+        result = self.db.execute(query, {"id": id}).fetchone()
+        if result:
+            return {"id": result[0], "nome": result[1], "cnpj": result[2], "status": result[3]}
+        return {}
+
+    def update(self, id: int, company: CompanyCreate):
+        query = text("UPDATE empresa SET nome = :nome, cnpj = :cnpj, status = :status WHERE id = :id RETURNING id, nome, cnpj, status")
+        result = self.db.execute(query, {"id": id, "nome": company.nome, "cnpj": company.cnpj, "status": company.status}).fetchone()
+        self.db.commit()
+        if result:
+            return {"id": result[0], "nome": result[1], "cnpj": result[2], "status": result[3]}
+        return None
+
+    def delete(self, id: int):
+        query = text("DELETE FROM empresa WHERE id = :id RETURNING id")
+        result = self.db.execute(query, {"id": id}).fetchone()
+        self.db.commit()
+        if result:
+            return {"message": f"Empresa com id {id} deletada com sucesso."}
+        return {"message": f"Empresa com id {id} não encontrada."}
