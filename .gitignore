@@ -150,3 +150,4 @@ cython_debug/
 
 # HTTP test files (optional - remove if you want to track these)
 *.http
+data_postgres/
