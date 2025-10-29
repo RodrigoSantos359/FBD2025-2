@@ -150,4 +150,6 @@ cython_debug/
 
 # HTTP test files (optional - remove if you want to track these)
 *.http
+
+# pasta dos volumes do postgres via docker compose
 data_postgres/
