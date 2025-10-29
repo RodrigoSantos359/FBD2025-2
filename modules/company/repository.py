@@ -1,42 +1,62 @@
-from core.db import get_db
 from modules.company.schemas import CompanyCreate
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import text
+from core.db import DataBase
 
 class CompanyRepository:
-    def __init__(self, db: Session):
-        self.db = db
+    QUERY_LISTAR = "SELECT id, nome, cnpj, status FROM empresa" # Tabela é 'empresa' no DB, não 'company'
+    QUERY_BUSCAR_ID = "SELECT id, nome, cnpj, status FROM empresa WHERE id = %s"
+    QUERY_CRIAR = "INSERT INTO empresa (nome, cnpj, status) VALUES (%s, %s, %s) RETURNING id, nome, cnpj, status"
+    QUERY_ATUALIZAR = "UPDATE empresa SET nome = %s, cnpj = %s, status = %s WHERE id = %s RETURNING id, nome, cnpj, status"
+    QUERY_DELETAR = "DELETE FROM empresa WHERE id = %s"
+    
+    def _row_to_company(self, row):
+        """Converte o resultado da tupla do banco de dados em um dicionário."""
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "nome": row[1],
+            "cnpj": row[2],
+            "status": row[3]
+        }
 
-    def get_all(self):
-        query = text("SELECT id, nome, cnpj, status FROM empresa")
-        results = self.db.execute(query).fetchall()
-        return [{"id": row[0], "nome": row[1], "cnpj": row[2], "status": row[3]} for row in results]
+    def listar(self):
+        db = DataBase()
+        rows = db.execute(self.QUERY_LISTAR)
+        return [self._row_to_company(row) for row in rows]
 
-    def save(self, company: CompanyCreate):
-        query = text("INSERT INTO empresa (nome, cnpj, status) VALUES (:nome, :cnpj, :status) RETURNING id")
-        result = self.db.execute(query, {"nome": company.nome, "cnpj": company.cnpj, "status": company.status}).fetchone()
-        self.db.commit()
-        return {"id": result[0], "nome": company.nome, "cnpj": company.cnpj, "status": company.status}
+    def buscar_por_id(self, company_id: int):
+        db = DataBase()
+        row = db.execute(self.QUERY_BUSCAR_ID % company_id, many=False)
+        return self._row_to_company(row)
 
-    def get_id(self, id: int):
-        query = text("SELECT id, nome, cnpj, status FROM empresa WHERE id = :id")
-        result = self.db.execute(query, {"id": id}).fetchone()
-        if result:
-            return {"id": result[0], "nome": result[1], "cnpj": result[2], "status": result[3]}
-        return {}
+    def criar(self, company: CompanyCreate):
+        db = DataBase()
+        
+        query = self.QUERY_CRIAR % (
+            f"'{company.nome}'", 
+            f"'{company.cnpj}'", 
+            f"'{company.status}'" # Literal é tratado como string
+        )
+        row = db.commit(query)
+        
+        return self._row_to_company(row)
 
-    def update(self, id: int, company: CompanyCreate):
-        query = text("UPDATE empresa SET nome = :nome, cnpj = :cnpj, status = :status WHERE id = :id RETURNING id, nome, cnpj, status")
-        result = self.db.execute(query, {"id": id, "nome": company.nome, "cnpj": company.cnpj, "status": company.status}).fetchone()
-        self.db.commit()
-        if result:
-            return {"id": result[0], "nome": result[1], "cnpj": result[2], "status": result[3]}
-        return None
+    def atualizar(self, company_id: int, company_data: CompanyCreate):
+        db = DataBase()
+        
+        query = self.QUERY_ATUALIZAR % (
+            f"'{company_data.nome}'", 
+            f"'{company_data.cnpj}'", 
+            f"'{company_data.status}'",
+            company_id
+        )
+        row = db.commit(query)
+        
+        return self._row_to_company(row)
 
-    def delete(self, id: int):
-        query = text("DELETE FROM empresa WHERE id = :id RETURNING id")
-        result = self.db.execute(query, {"id": id}).fetchone()
-        self.db.commit()
-        if result:
-            return {"message": f"Empresa com id {id} deletada com sucesso."}
-        return {"message": f"Empresa com id {id} não encontrada."}
+    def deletar(self, company_id: int):
+        db = DataBase()
+        db.commit(self.QUERY_DELETAR % company_id)
+        return {"mensagem": "Empresa deletada com sucesso"}
+
+

@@ -1,21 +1,42 @@
-# Versão final do core/db.py no sandbox
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import psycopg2
 from core import settings
 
-# Configuração do SQLAlchemy
-DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
-# Mantida a correção de timezone na engine
-engine = create_engine(DATABASE_URL, connect_args={"options": "-c timezone=utc"})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+class DataBase:
+    def __init__(self):
+        self.conn = psycopg2.connect(
+            host=settings.DB_HOST,
+            database=settings.DB_NAME,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            port=settings.DB_PORT
+        )
 
-# Função para obter uma sessão do banco de dados
+    # Nota: O método _get_conn no seu exemplo não usa as settings.
+    # Removendo _get_conn e mantendo a inicialização no __init__
+
+    def execute(self, sql, many=True):
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        result = cursor.fetchall() if many else cursor.fetchone()
+        self.conn.close()
+        cursor.close()
+        return result
+
+    def commit(self, sql):
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        self.conn.commit()
+        self.conn.close()
+        cursor.close()
+        return None # Retorna None, pois este método é para comandos que não retornam dados (DDL)
+
+# Função para obter uma sessão do banco de dados (mantida para compatibilidade com FastAPI Depends)
 def get_db():
-    db = SessionLocal()
+    db = DataBase()
     try:
         yield db
     finally:
-        db.close()
+        # A classe DataBase já fecha a conexão em execute/commit, mas mantemos a estrutura
+        pass

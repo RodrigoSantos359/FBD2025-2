@@ -1,24 +1,23 @@
-from typing import Optional
 from modules.fornecedor import schemas
 from modules.fornecedor.repository import FornecedorRepository
 
 class FornecedorService:
     def get_fornecedores(self):
         repository = FornecedorRepository()
-        return repository.get_all()
+        return repository.listar()
 
-    def create_fornecedor(self, fornecedor: schemas.FornecedorCreate) -> schemas.Fornecedor:
+    def create_fornecedor(self, fornecedor: schemas.FornecedorCreate):
         repository = FornecedorRepository()
-        return repository.save(fornecedor)
+        return repository.criar(fornecedor)
 
     def get_fornecedor_id(self, id: int):
         repository = FornecedorRepository()
-        return repository.get_id(id)
+        return repository.buscar_por_id(id)
 
-    def update_fornecedor(self, id: int, fornecedor: schemas.FornecedorCreate) -> Optional[schemas.Fornecedor]:
+    def update_fornecedor(self, id: int, fornecedor: schemas.FornecedorCreate):
         repository = FornecedorRepository()
-        return repository.update(id, fornecedor)
+        return repository.atualizar(id, fornecedor)
 
     def delete_fornecedor(self, id: int):
         repository = FornecedorRepository()
-        return repository.delete(id)
+        return repository.deletar(id)

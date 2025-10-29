@@ -1,24 +1,23 @@
-from typing import Optional
 from modules.produto import schemas
 from modules.produto.repository import ProdutoRepository
 
 class ProdutoService:
     def get_produtos(self):
         repository = ProdutoRepository()
-        return repository.get_all()
+        return repository.listar()
 
-    def create_produto(self, produto: schemas.ProdutoCreate) -> schemas.Produto:
+    def create_produto(self, produto: schemas.ProdutoCreate):
         repository = ProdutoRepository()
-        return repository.save(produto)
+        return repository.criar(produto)
 
     def get_produto_id(self, id: int):
         repository = ProdutoRepository()
-        return repository.get_id(id)
+        return repository.buscar_por_id(id)
 
-    def update_produto(self, id: int, produto: schemas.ProdutoCreate) -> Optional[schemas.Produto]:
+    def update_produto(self, id: int, produto: schemas.ProdutoCreate):
         repository = ProdutoRepository()
-        return repository.update(id, produto)
+        return repository.atualizar(id, produto)
 
     def delete_produto(self, id: int):
         repository = ProdutoRepository()
-        return repository.delete(id)
+        return repository.deletar(id)

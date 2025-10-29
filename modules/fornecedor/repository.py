@@ -1,47 +1,65 @@
-from sqlalchemy.orm import Session
-from modules.fornecedor.schemas import FornecedorCreate, Fornecedor
-from core.db import SessionLocal
-from sqlalchemy import text
+from modules.fornecedor.schemas import FornecedorCreate
+from core.db import DataBase
 
 class FornecedorRepository:
-    def get_all(self):
-        with SessionLocal() as session:
-            query = text("SELECT id, nome, cnpj, status, empresa_id FROM fornecedor")
-            result = session.execute(query).fetchall()
-            return [{"id": row[0], "nome": row[1], "cnpj": row[2], "status": row[3], "empresa_id": row[4]} for row in result]
-
-    def save(self, fornecedor: FornecedorCreate):
-        with SessionLocal() as session:
-            query = text("INSERT INTO fornecedor (nome, cnpj, status, empresa_id) VALUES (:nome, :cnpj, :status, :empresa_id) RETURNING id")
-            result = session.execute(query, {"nome": fornecedor.nome, "cnpj": fornecedor.cnpj, "status": fornecedor.status, "empresa_id": fornecedor.empresa_id}).fetchone()
-            session.commit()
-            return {"id": result[0], "nome": fornecedor.nome, "cnpj": fornecedor.cnpj, "status": fornecedor.status, "empresa_id": fornecedor.empresa_id}
-
-    def get_id(self, id: int):
-        with SessionLocal() as session:
-            query = text("SELECT id, nome, cnpj, status, empresa_id FROM fornecedor WHERE id = :id")
-            result = session.execute(query, {"id": id}).fetchone()
-            if result:
-                return {"id": result[0], "nome": result[1], "cnpj": result[2], "status": result[3], "empresa_id": result[4]}
+    QUERY_LISTAR = "SELECT id, nome, cnpj, status, empresa_id FROM fornecedor"
+    QUERY_BUSCAR_ID = "SELECT id, nome, cnpj, status, empresa_id FROM fornecedor WHERE id = %s"
+    QUERY_CRIAR = "INSERT INTO fornecedor (nome, cnpj, status, empresa_id) VALUES (%s, %s, %s, %s) RETURNING id, nome, cnpj, status, empresa_id"
+    QUERY_ATUALIZAR = "UPDATE fornecedor SET nome = %s, cnpj = %s, status = %s, empresa_id = %s WHERE id = %s RETURNING id, nome, cnpj, status, empresa_id"
+    QUERY_DELETAR = "DELETE FROM fornecedor WHERE id = %s"
+    
+    def _row_to_fornecedor(self, row):
+        """Converte o resultado da tupla do banco de dados em um dicionário."""
+        if not row:
             return None
+        return {
+            "id": row[0],
+            "nome": row[1],
+            "cnpj": row[2],
+            "status": row[3],
+            "empresa_id": row[4]
+        }
 
-    def update(self, id: int, fornecedor: FornecedorCreate):
-        with SessionLocal() as session:
-            query = text("UPDATE fornecedor SET nome = :nome, cnpj = :cnpj, status = :status, empresa_id = :empresa_id WHERE id = :id RETURNING id")
-            result = session.execute(query, {"id": id, "nome": fornecedor.nome, "cnpj": fornecedor.cnpj, "status": fornecedor.status, "empresa_id": fornecedor.empresa_id}).fetchone()
-            session.commit()
-            if result:
-                return {"id": result[0], "nome": fornecedor.nome, "cnpj": fornecedor.cnpj, "status": fornecedor.status, "empresa_id": fornecedor.empresa_id}
-            return None
+    def listar(self):
+        db = DataBase()
+        rows = db.execute(self.QUERY_LISTAR)
+        return [self._row_to_fornecedor(row) for row in rows]
 
-    def delete(self, id: int):
-        with SessionLocal() as session:
-            query = text("DELETE FROM fornecedor WHERE id = :id RETURNING id")
-            result = session.execute(query, {"id": id}).fetchone()
-            session.commit()
-            if result:
-                return {"message": f"Fornecedor com id {id} deletado com sucesso."}
-            return {"message": f"Fornecedor com id {id} não encontrado."}
+    def buscar_por_id(self, fornecedor_id: int):
+        db = DataBase()
+        row = db.execute(self.QUERY_BUSCAR_ID % fornecedor_id, many=False)
+        return self._row_to_fornecedor(row)
 
+    def criar(self, fornecedor: FornecedorCreate):
+        db = DataBase()
+        
+        query = self.QUERY_CRIAR % (
+            f"'{fornecedor.nome}'", 
+            f"'{fornecedor.cnpj}'", 
+            f"'{fornecedor.status.value}'", # Enum deve ser convertido para string
+            fornecedor.empresa_id
+        )
+        row = db.commit(query)
+        
+        return self._row_to_fornecedor(row)
+
+    def atualizar(self, fornecedor_id: int, fornecedor_data: FornecedorCreate):
+        db = DataBase()
+        
+        query = self.QUERY_ATUALIZAR % (
+            f"'{fornecedor_data.nome}'", 
+            f"'{fornecedor_data.cnpj}'", 
+            f"'{fornecedor_data.status.value}'", # Enum deve ser convertido para string
+            fornecedor_data.empresa_id,
+            fornecedor_id
+        )
+        row = db.commit(query)
+        
+        return self._row_to_fornecedor(row)
+
+    def deletar(self, fornecedor_id: int):
+        db = DataBase()
+        db.commit(self.QUERY_DELETAR % fornecedor_id)
+        return {"mensagem": "Fornecedor deletado com sucesso"}
 
 
